@@ -26,12 +26,12 @@ SECRET_KEY = 'django-insecure-!tv*elu^j2mjmc)39+^)g_%%r(fkr(auj_m6&_yk1wzwdww071
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    "wedding.pythonanywhere.com",  # замени на свой логин PA
+    "gjwedding.pythonanywhere.com",  # замени на свой логин PA
     "127.0.0.1", "localhost"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://wedding.pythonanywhere.com"
+    "https://gjwedding.pythonanywhere.com"
 ]
 
 # Application definition
