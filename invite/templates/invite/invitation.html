@@ -1,0 +1,1023 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Свадебное приглашение</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', 'Georgia', serif;
+            background: #fcfaf7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Фон с цветочным изображением */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(252, 250, 247, 0.7), rgba(252, 250, 247, 0.8)),
+                url('{% static 'invite/images/1.jpeg' %}');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        /* Дополнительный узор */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(252, 250, 247, 0.7), rgba(252, 250, 247, 0.8)),
+                url('{% static 'invite/images/2.jpeg' %}');
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Конверт */
+        .envelope-container {
+            position: relative;
+            width: 320px;
+            height: 200px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            z-index: 100;
+            filter: drop-shadow(0 5px 15px rgba(146, 102, 82, 0.2));
+        }
+
+        .envelope-container.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        .envelope {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #f8f5f1;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(146, 102, 82, 0.15);
+            overflow: hidden;
+        }
+
+        .envelope::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80' opacity='0.05'%3E%3Cpath d='M40,20 C45,15 55,15 60,20 C65,25 65,35 60,40 C65,45 65,55 60,60 C55,65 45,65 40,60 C35,65 25,65 20,60 C15,55 15,45 20,40 C15,35 15,25 20,20 C25,15 35,15 40,20 Z' fill='none' stroke='%23986d4e' stroke-width='1.5'/%3E%3C/svg%3E");
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: #e8dfd3;
+            clip-path: polygon(0 0, 50% 60%, 100% 0);
+            border-radius: 8px 8px 0 0;
+            transition: transform 0.6s;
+            transform-origin: top;
+            z-index: 2;
+        }
+
+        .envelope:hover .envelope-flap {
+            transform: rotateX(-30deg);
+        }
+
+        .envelope-paper {
+            position: absolute;
+            width: 90%;
+            height: 80%;
+            left: 5%;
+            bottom: 5%;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(146, 102, 82, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #986d4e;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #986d4e;
+            font-size: 18px;
+            animation: pulse 2s infinite;
+            white-space: nowrap;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            50% { opacity: 0.7; transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Полноэкранное приглашение */
+        .invitation-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            /* Убираем белый фон и добавляем фоновое изображение */
+            background: linear-gradient(rgba(252, 250, 247, 0.85), rgba(252, 250, 247, 0.9)),
+                        url('{% static 'invite/images/2.jpeg' %}');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .invitation-fullscreen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .invitation-card {
+            width: 100%;
+            height: 100vh;
+            /* Делаем карточку более прозрачной, чтобы был виден фон */
+            background: linear-gradient(rgba(252, 250, 247, 0.85), rgba(252, 250, 247, 0.9)),
+                        url('{% static 'invite/images/2.jpeg' %}');
+            padding: 40px 20px;
+            position: relative;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.6s ease 0.3s;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .invitation-fullscreen.active .invitation-card {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .invitation-content-wrapper {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #d6c5b3;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #986d4e;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .close-btn:hover {
+            background: #986d4e;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        /* Декоративные элементы - цветочные узоры */
+        .decoration-corner {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .decoration-corner.top-left {
+            top: 0;
+            left: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23986d4e' d='M30,10 C40,5 60,5 70,10 C80,20 80,40 70,50 C60,60 40,60 30,50 C20,40 20,20 30,10 Z'/%3E%3Cpath fill='%23986d4e' d='M15,30 C20,25 30,25 35,30 C40,35 40,45 35,50 C30,55 20,55 15,50 C10,45 10,35 15,30 Z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .decoration-corner.top-right {
+            top: 0;
+            right: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23986d4e' d='M70,10 C60,5 40,5 30,10 C20,20 20,40 30,50 C40,60 60,60 70,50 C80,40 80,20 70,10 Z'/%3E%3Cpath fill='%23986d4e' d='M85,30 C80,25 70,25 65,30 C60,35 60,45 65,50 C70,55 80,55 85,50 C90,45 90,35 85,30 Z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .decoration-corner.bottom-left {
+            bottom: 0;
+            left: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23986d4e' d='M30,90 C40,95 60,95 70,90 C80,80 80,60 70,50 C60,40 40,40 30,50 C20,60 20,80 30,90 Z'/%3E%3Cpath fill='%23986d4e' d='M15,70 C20,75 30,75 35,70 C40,65 40,55 35,50 C30,45 20,45 15,50 C10,55 10,65 15,70 Z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .decoration-corner.bottom-right {
+            bottom: 0;
+            right: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23986d4e' d='M70,90 C60,95 40,95 30,90 C20,80 20,60 30,50 C40,40 60,40 70,50 C80,60 80,80 70,90 Z'/%3E%3Cpath fill='%23986d4e' d='M85,70 C80,75 70,75 65,70 C60,65 60,55 65,50 C70,45 80,45 85,50 C90,55 90,65 85,70 Z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        /* Содержимое приглашения */
+        .invitation-header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease 0.6s both;
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .invitation-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #d6c5b3, transparent);
+        }
+
+        .invitation-title {
+            font-size: 16px;
+            color: #a38a75;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .couple-names {
+            font-size: 42px;
+            color: #7a5c3c;
+            margin: 20px 0;
+            font-weight: 500;
+            position: relative;
+            animation: fadeInUp 0.8s ease 0.8s both;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .wedding-date {
+            font-size: 26px;
+            color: #986d4e;
+            margin: 20px 0;
+            animation: fadeInUp 0.8s ease 1s both;
+            font-style: italic;
+        }
+
+        .invitation-body {
+            text-align: center;
+            margin: 30px 0;
+            animation: fadeIn 0.8s ease 1.2s both;
+        }
+
+        .invitation-text {
+            font-size: 16px;
+            color: #6d5d4f;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+            border: 1px solid #f0e8e0;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        /* Таймлайн */
+        .timeline-section {
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            animation: fadeInUp 0.8s ease 1.4s both;
+            border: 1px solid #f0e8e0;
+            position: relative;
+        }
+
+        .timeline-section::before {
+            content: "✿";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fcfaf7;
+            padding: 0 15px;
+            color: #986d4e;
+            font-size: 20px;
+        }
+
+        .timeline-title {
+            font-size: 22px;
+            color: #7a5c3c;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(214, 197, 179, 0.1);
+            border-radius: 8px;
+            transition: transform 0.3s;
+            border-left: 3px solid #d6c5b3;
+        }
+
+        .timeline-item:hover {
+            transform: translateX(10px);
+            background: rgba(214, 197, 179, 0.2);
+        }
+
+        .timeline-time {
+            font-size: 20px;
+            font-weight: 500;
+            color: #986d4e;
+            min-width: 80px;
+            margin-right: 20px;
+        }
+
+        .timeline-event {
+            flex: 1;
+        }
+
+        .timeline-event-name {
+            font-size: 18px;
+            color: #6d5d4f;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .timeline-location {
+            font-size: 14px;
+            color: #a38a75;
+        }
+
+        .timeline-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #986d4e;
+        }
+
+        /* Обратный отсчет */
+        .countdown-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            animation: fadeInUp 0.8s ease 1.6s both;
+            border: 1px solid #f0e8e0;
+        }
+
+        .countdown-title {
+            font-size: 18px;
+            color: #7a5c3c;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .countdown-boxes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .countdown-box {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 80px;
+            box-shadow: 0 3px 10px rgba(146, 102, 82, 0.1);
+            transition: transform 0.3s;
+            border: 1px solid #f0e8e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-box::before {
+            content: "✿";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            color: #d6c5b3;
+        }
+
+        .countdown-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(146, 102, 82, 0.15);
+        }
+
+        .countdown-number {
+            font-size: 32px;
+            font-weight: 500;
+            color: #986d4e;
+            display: block;
+        }
+
+        .countdown-label {
+            font-size: 12px;
+            color: #a38a75;
+            text-transform: uppercase;
+        }
+
+        /* Детали контактов */
+        .contact-details {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease 1.8s both;
+            border: 1px solid #f0e8e0;
+        }
+
+        .contact-title {
+            font-size: 18px;
+            color: #7a5c3c;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .contact-text {
+            font-size: 14px;
+            color: #6d5d4f;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .contact-phones {
+            font-size: 18px;
+            color: #986d4e;
+            font-weight: 500;
+        }
+
+        /* Форма RSVP */
+        .rsvp-section {
+            margin: 30px 0;
+            padding: 30px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            animation: fadeInUp 0.8s ease 2s both;
+            border: 1px solid #f0e8e0;
+        }
+
+        .rsvp-title {
+            font-size: 22px;
+            color: #7a5c3c;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .rsvp-subtitle {
+            font-size: 14px;
+            color: #a38a75;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 16px;
+            color: #6d5d4f;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e8dfd3;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: #fcfaf7;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #986d4e;
+            box-shadow: 0 0 0 2px rgba(152, 109, 78, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(214, 197, 179, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .radio-option:hover {
+            background: rgba(214, 197, 179, 0.2);
+            border-color: #e8dfd3;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #986d4e;
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            font-size: 16px;
+            color: #6d5d4f;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, #d6c5b3, #986d4e);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(152, 109, 78, 0.2);
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 500;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: "✿";
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(152, 109, 78, 0.3);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Цветочки вместо сердечек */
+        .flowers-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .flower {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            animation: floatFlower 8s linear infinite;
+            opacity: 0.7;
+            font-size: 18px;
+            color: #d6c5b3;
+        }
+
+        @keyframes floatFlower {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Адаптив */
+        @media (max-width: 768px) {
+            .couple-names {
+                font-size: 32px;
+            }
+
+            .wedding-date {
+                font-size: 22px;
+            }
+
+            .invitation-card {
+                padding: 20px 15px;
+            }
+
+            .timeline-item {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .timeline-time {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .countdown-boxes {
+                gap: 10px;
+            }
+
+            .countdown-box {
+                min-width: 70px;
+                padding: 10px;
+            }
+
+            .countdown-number {
+                font-size: 24px;
+            }
+
+            .rsvp-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flowers-bg" id="flowersBg"></div>
+
+    <!-- Конверт -->
+    <div class="envelope-container" id="envelopeContainer">
+        <div class="envelope">
+            <div class="envelope-flap"></div>
+            <div class="envelope-paper">
+                <span>✉️</span>
+            </div>
+        </div>
+        <div class="hint">✨ Нажмите, чтобы открыть приглашение</div>
+    </div>
+
+    <!-- Полноэкранное приглашение -->
+    <div class="invitation-fullscreen" id="invitationFullscreen">
+        <div class="invitation-card">
+            <button class="close-btn" onclick="closeInvitation()">×</button>
+
+            <div class="decoration-corner top-left"></div>
+            <div class="decoration-corner top-right"></div>
+            <div class="decoration-corner bottom-left"></div>
+            <div class="decoration-corner bottom-right"></div>
+
+            <div class="invitation-content-wrapper">
+                <div class="invitation-header">
+                    <div class="invitation-title">Приглашение на свадьбу</div>
+                    <div class="couple-names">
+                        Garik & Julietta
+                    </div>
+                    <div class="wedding-date">
+                        15 ноября 2025
+                    </div>
+                </div>
+
+                <div class="countdown-section">
+                    <div class="countdown-title">До нашего особенного дня осталось:</div>
+                    <div class="countdown-boxes">
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="days">00</span>
+                            <span class="countdown-label">Дней</span>
+                        </div>
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="hours">00</span>
+                            <span class="countdown-label">Часов</span>
+                        </div>
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="minutes">00</span>
+                            <span class="countdown-label">Минут</span>
+                        </div>
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="seconds">00</span>
+                            <span class="countdown-label">Секунд</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invitation-body">
+                    <p class="invitation-text">
+                        Дорогие друзья и родные!
+                        Мы верим, что этот день станет красивым началом нашей счастливой совместной жизни.
+Мы хотим оказаться в окружении самых близких и дорогих для нас людей, искренне и от всей души будем рады видеть вас среди гостей
+на нашей свадьбе
+                    </p>
+
+                    <div class="timeline-section">
+                        <div class="timeline-title">Расписание дня</div>
+
+                        <div class="timeline-item" onclick="openMap(41.795806, 44.827275, 'Дом жениха')">
+                            <span class="timeline-icon">🏠</span>
+                            <div class="timeline-time">09:30</div>
+                            <div class="timeline-event">
+                                <div class="timeline-event-name">Дом жениха</div>
+                                <div class="timeline-location">📍 Нажмите для просмотра на карте</div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item" onclick="openMap(41.692350, 44.925235, 'Дом невесты')">
+                            <span class="timeline-icon">🏡</span>
+                            <div class="timeline-time">11:00</div>
+                            <div class="timeline-event">
+                                <div class="timeline-event-name">Дом невесты</div>
+                                <div class="timeline-location">📍 Нажмите для просмотра на карте</div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item" onclick="openMap(41.693252, 44.925184, 'Венчание')">
+                            <span class="timeline-icon">⛪</span>
+                            <div class="timeline-time">13:30</div>
+                            <div class="timeline-event">
+                                <div class="timeline-event-name">Венчание</div>
+                                <div class="timeline-location">📍 Нажмите для просмотра на карте</div>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item" onclick="openMap(41.67736241704693, 44.82982153379169, 'Церемония и банкет')">
+                            <span class="timeline-icon">🎉</span>
+                            <div class="timeline-time">17:00</div>
+                            <div class="timeline-event">
+                                <div class="timeline-event-name">Церемония и начало банкета</div>
+                                <div class="timeline-location">📍 Нажмите для просмотра на карте</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-details">
+                        <div class="contact-title">📞 Контакты</div>
+                        <div class="contact-text">
+                            Если у Вас возникнут какие-либо вопросы в день свадьбы
+                            или Вам потребуется уточнение по поводу локации,
+                            пожалуйста, не стесняйтесь звонить по следующим номерам:
+                        </div>
+                        <div class="contact-phones">
+                            597 777 300 | 597 777 301
+                        </div>
+                    </div>
+
+                    <div class="rsvp-section">
+                        <div class="rsvp-title">Анкета гостя</div>
+                        <div class="rsvp-subtitle">Просьба заполнить анкету до 1 октября 2025г.</div>
+
+                        <form id="rsvpForm">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="form-label" for="guestName">Ваше Имя и Фамилия</label>
+                                <input type="text" id="guestName" class="form-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Планируете ли Вы присутствовать на свадьбе?</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="attendYes" name="attendance" value="yes" required>
+                                        <label for="attendYes">Да, с удовольствием!</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="attendNo" name="attendance" value="no" required>
+                                        <label for="attendNo">К сожалению, не могу</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn">
+                                Отправить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const envelopeContainer = document.getElementById('envelopeContainer');
+        const invitationFullscreen = document.getElementById('invitationFullscreen');
+        const flowersBg = document.getElementById('flowersBg');
+        const rsvpForm = document.getElementById('rsvpForm');
+
+        // Открытие Google Maps
+        function openMap(lat, lng, locationName) {
+            // Создаем URL для Google Maps
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+
+            // Открываем в новой вкладке
+            window.open(googleMapsUrl, '_blank');
+        }
+
+        // Открытие приглашения
+        envelopeContainer.addEventListener('click', function() {
+            // Скрываем конверт
+            this.classList.add('hidden');
+
+            // Показываем полноэкранное приглашение
+            setTimeout(() => {
+                invitationFullscreen.classList.add('active');
+                startCountdown();
+                createFloatingFlowers();
+            }, 500);
+        });
+
+        // Закрытие приглашения
+        function closeInvitation() {
+            invitationFullscreen.classList.remove('active');
+            setTimeout(() => {
+                envelopeContainer.classList.remove('hidden');
+            }, 600);
+        }
+
+        // Обработка формы RSVP
+        rsvpForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const guestName = document.getElementById('guestName').value;
+    const attendance = document.querySelector('input[name="attendance"]:checked').value;
+
+    const form = new FormData();
+    form.append('guestName', guestName);
+    form.append('attendance', attendance);
+
+    // CSRF-токен (простой способ вытащить из cookie)
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    const resp = await fetch("{% url 'rsvp' %}", {
+      method: 'POST',
+      body: form,
+      headers: {'X-CSRFToken': csrftoken},
+    });
+
+    if (resp.ok) {
+      const msg = attendance === 'yes'
+        ? `Спасибо, ${guestName}! 💕\nМы очень рады, что вы будете с нами!`
+        : `Спасибо, ${guestName}! 💕\nЖаль, что вы не сможете присутствовать.`;
+      alert(msg);
+      createBurstFlowers();
+      this.reset();
+    } else {
+      alert('Ошибка отправки. Попробуйте позже.');
+    }
+  });
+
+        // Обратный отсчет
+        function startCountdown() {
+            const weddingDate = new Date('2025-11-15T09:30:00').getTime();
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = weddingDate - now;
+
+                if (distance > 0) {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    document.getElementById('days').textContent = String(days).padStart(2, '0');
+                    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                }
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        // Создание плавающих цветочков
+        function createFloatingFlowers() {
+            const flowers = ['✿', '🌸', '💮', '🏵️', '🌺', '🌻', '🌼', '🌷'];
+
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const flower = document.createElement('div');
+                    flower.className = 'flower';
+                    flower.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+                    flower.style.left = Math.random() * 100 + '%';
+                    flower.style.animationDelay = Math.random() * 3 + 's';
+                    flower.style.animationDuration = (6 + Math.random() * 4) + 's';
+                    flowersBg.appendChild(flower);
+
+                    setTimeout(() => {
+                        flower.remove();
+                    }, 10000);
+                }, i * 1000);
+            }
+        }
+
+        // Взрыв цветочков при подтверждении
+        function createBurstFlowers() {
+            const flowers = ['✿', '🌸', '💮', '🏵️', '🌺', '🌻', '🌼', '🌷'];
+
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const flower = document.createElement('div');
+                    flower.className = 'flower';
+                    flower.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+                    flower.style.left = (30 + Math.random() * 40) + '%';
+                    flower.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    flowersBg.appendChild(flower);
+
+                    setTimeout(() => {
+                        flower.remove();
+                    }, 4000);
+                }, i * 100);
+            }
+        }
+
+        // Периодические цветочки
+        setInterval(() => {
+            if (invitationFullscreen.classList.contains('active')) {
+                createFloatingFlowers();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
